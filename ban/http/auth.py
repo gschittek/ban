@@ -1,10 +1,9 @@
 from .utils import abort
 from flask_oauthlib.provider import OAuth2Provider
-from flask import request
+from flask import request, g
 from werkzeug.datastructures import ImmutableMultiDict
 
 from ban.auth import models
-from ban.core import context
 from ban.utils import is_uuid4
 
 from .wsgi import app
@@ -41,7 +40,7 @@ def tokengetter(access_token=None, refresh_token=None):
     if access_token:
         token = models.Token.first(models.Token.access_token == access_token)
         if token:
-            context.set('session', token.session)
+            g.session = token.session
             # We use TZ aware datetime while Flask Oauthlib wants naive ones.
             token.expires = token.expires.replace(tzinfo=None)
             return token

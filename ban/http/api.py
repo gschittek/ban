@@ -2,11 +2,11 @@ from io import StringIO
 from urllib.parse import urlencode
 
 import peewee
-from flask import request, url_for
+from flask import request, url_for, g
 
 from ban.auth import models as amodels
 from ban.commands.bal import bal
-from ban.core import models, versioning, context
+from ban.core import models, versioning
 from ban.core.encoder import dumps
 from ban.utils import parse_mask
 from ban.http.auth import auth
@@ -463,7 +463,7 @@ def bal_post():
     """Import file at BAL format."""
     data = request.files['data']
     bal(StringIO(data.read().decode('utf-8-sig')))
-    reporter = context.get('reporter')
+    reporter = g.get('reporter')
     return dumps({'report': reporter})
 
 

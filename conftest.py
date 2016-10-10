@@ -1,7 +1,7 @@
 import json
 
 import pytest
-from flask import url_for
+from flask import url_for, g
 from flask.testing import FlaskClient
 
 from ban import db
@@ -9,12 +9,15 @@ from ban.commands.db import create as createdb
 from ban.commands.db import truncate as truncatedb
 from ban.commands.db import models
 from ban.commands.reporter import Reporter
-from ban.core import context
 from ban.http.api import app as application
 from ban.tests.factories import SessionFactory, TokenFactory, UserFactory
 
 
+app_context = application.app_context()
+
+
 def pytest_configure(config):
+    app_context.__enter__()
     assert db.test.database.startswith('test_')
     for model in models:
         model._meta.database = db.test
@@ -33,7 +36,7 @@ def pytest_unconfigure(config):
 
 def pytest_runtest_setup(item):
     truncatedb(force=True)
-    context.set('session', None)
+    g.session = None
 
 
 @pytest.fixture()
@@ -49,7 +52,7 @@ def staff():
 @pytest.fixture()
 def session():
     session = SessionFactory()
-    context.set('session', session)
+    g.session = session
     return session
 
 
@@ -146,5 +149,5 @@ def config(request, monkeypatch):
 @pytest.fixture
 def reporter():
     reporter_ = Reporter(2)
-    context.set('reporter', reporter_)
+    g.reporter = reporter_
     return reporter_

@@ -1,6 +1,7 @@
+from flask import g
+
 from ban.auth.models import Token, User, Client
 from ban.commands import command, reporter
-from ban.core import context
 
 from . import helpers
 
@@ -9,7 +10,7 @@ from . import helpers
 @helpers.session
 def dummytoken(token, **kwargs):
     """Create a dummy token for dev."""
-    session = context.get('session')
+    session = g.get('session')
     Token.delete().where(Token.access_token == token).execute()
     Token.create(session=session.pk, access_token=token, expires_in=3600*24,
                  token_type='Bearer', scope='*')

@@ -1,6 +1,6 @@
+from flask import g
 import pytest
 
-from ban.core import context
 
 from .factories import GroupFactory, SessionFactory
 
@@ -47,7 +47,7 @@ def test_cannot_unflag_other_client_flag(session):
     version.flag()
     # Change current session
     session = SessionFactory()
-    context.set('session', session)
+    g.session = session
     assert version.flags.select().count() == 1
     version.unflag()
     assert version.flags.select().count() == 1

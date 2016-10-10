@@ -3,7 +3,9 @@ import inspect
 import os
 from itertools import zip_longest
 
-from ban.core import config, context
+from flask import g
+
+from ban.core import config
 
 from .reporter import Reporter
 
@@ -42,7 +44,7 @@ class Command:
     def __call__(self, *args, **kwargs):
         """Run command."""
         reporter = Reporter(config.get('VERBOSE'))
-        context.set('reporter', reporter)
+        g.reporter = reporter
         for func in self._on_before_call:
             func(self, args, kwargs)
         try:

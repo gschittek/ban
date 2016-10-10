@@ -9,7 +9,7 @@ Reporter must be:
 - able to output only on demand (when command is finished, not on the fly)
 - able to group reports by level and message
 """
-from ban.core import context
+from flask import g
 
 
 ERROR = 1
@@ -96,7 +96,7 @@ class Reporter:
 
 
 def report(name, item, level=1):
-    reporter = context.get('reporter')
+    reporter = g.get('reporter')
     if not reporter:
         print("Reporter not set!")
         return

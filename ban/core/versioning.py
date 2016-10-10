@@ -2,6 +2,7 @@ from datetime import datetime
 import json
 
 import decorator
+from flask import g
 import peewee
 
 from ban import db
@@ -9,12 +10,10 @@ from ban.auth.models import Client, Session
 from ban.core.encoder import dumps
 from ban.utils import make_diff, utcnow
 
-from . import context
-
 
 @decorator.decorator
 def flag_id_required(func, self, *args, **kwargs):
-    session = context.get('session')
+    session = g.get('session')
     if not session:
         raise ValueError('Must be logged in.')
     if not session.client:
@@ -119,7 +118,7 @@ class Versioned(db.Model, metaclass=BaseVersioned):
             raise ForcedVersionError('wrong version number: {}'.format(self.version))  # noqa
 
     def update_meta(self):
-        session = context.get('session')
+        session = g.get('session')
         if session:  # TODO remove this if, session should be mandatory.
             try:
                 getattr(self, 'created_by', None)

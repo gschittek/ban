@@ -10,11 +10,12 @@ from importlib import import_module
 from pathlib import Path
 
 import decorator
+from flask import g
 from progressist import ProgressBar
 
 from ban.auth.models import Session, User
 from ban.commands.reporter import Reporter
-from ban.core import context, config
+from ban.core import config
 from ban.core.versioning import Diff
 
 
@@ -66,11 +67,11 @@ class Bar(ProgressBar):
 
 def collect_report(func, *args, **kwargs):
     # This is a process reporter instance.
-    reporter = context.get('reporter')
+    reporter = g.get('reporter')
     if not reporter:
         # In thread mode, reporter is not shared with subthreads.
         reporter = Reporter(config.get('VERBOSE'))
-        context.set('reporter', reporter)
+        g.reporter = reporter
     func(*args, **kwargs)
     reports = reporter._reports.copy()
     reporter.clear()
@@ -79,7 +80,7 @@ def collect_report(func, *args, **kwargs):
 
 def batch(func, iterable, chunksize=1000, total=None, progress=True):
     # This is the main reporter instance.
-    reporter = context.get('reporter')
+    reporter = g.get('reporter')
     pool = (ProcessPoolExecutor if config.get('BATCH_EXECUTOR') == 'process'
             else ThreadPoolExecutor)
     bar = Bar(total=total, throttle=timedelta(seconds=1))
@@ -174,7 +175,7 @@ def confirm(text, default=None):
 
 @decorator.decorator
 def session(func, *args, **kwargs):
-    session = context.get('session')
+    session = g.get('session')
     if not session:
         qs = User.select().where(User.is_staff == True)
         username = config.get('SESSION_USER')
@@ -185,7 +186,7 @@ def session(func, *args, **kwargs):
         except User.DoesNotExist:
             abort('Admin user not found {}'.format(username or ''))
         session = Session.create(user=user)
-        context.set('session', session)
+        g.session = session
     return func(*args, **kwargs)
 
 
